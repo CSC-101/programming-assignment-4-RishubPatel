@@ -5,12 +5,13 @@ import copy
 
 global Demographics
 Demographics = build_data.get_data()
+File_Name = "inputs/" + "pop_field.ops" #INSTRUCTIONS: put the name of the operations file here
 
 class Operations:
         
     #might wanna make reduced_demographics a global thing or not
     #STILL PSUEDOCODE
-    #adjust code if you are returned percentagess
+    #adjust code if you are returned percentages
 
     def display(demographics: list[data.CountyDemographics]) -> None: #prints all data for all current counties
         [[print(county.attribute) for attribute in county.vars()] for county in demographics()]
@@ -46,7 +47,8 @@ class Operations:
         return percentage
 
 def process_operations_file(file_name: str) -> None:
-    county_demographics = copy.deepcopy(Demographics)
+    Demographics_Copy = copy.deepcopy(Demographics)
+    file = open(file_name, "r")
     try:
         file = open(file_name, "r")
     except:
@@ -60,25 +62,25 @@ def process_operations_file(file_name: str) -> None:
     for line in lines:
         current_line_num += 1
         split_line = line.split(":")
-        try:
+        try: #execute the operation
             if not split_line:
                 pass
             elif split_line[0] == "display":
-                Operations.display(county_demographics)
+                Operations.display(Demographics_Copy)
             elif split_line[0] == "filter-gt":
-                Operations.filter_gt(county_demographics, split_line[2], split_line[1])
+                Operations.filter_gt(Demographics_Copy, split_line[2], split_line[1])
             elif split_line[0] == "filter-lt":
-                Operations.filter_lt(county_demographics, split_line[2], split_line[1])
+                Operations.filter_lt(Demographics_Copy, split_line[2], split_line[1])
             elif split_line[0] == "population-total":
-                Operations.population_total(county_demographics)
+                Operations.population_total(Demographics_Copy)
             elif split_line[0] == "population":
-                Operations.population(county_demographics, split_line[1])
+                Operations.population(Demographics_Copy, split_line[1])
             elif split_line[0] == "percent":
-                Operations.percent(county_demographics, split_line[1])
+                Operations.percent(Demographics_Copy, split_line[1])
+            else:
+                print("No operation found -- Line", current_line_num)
         except IndexError:
             print("Inputs not found (index error) -- Line", current_line_num)
-        else:
-            print("No operation found -- Line", current_line_num)
 
 if __name__ == "__main__":
-    process_operations_file("YOYOYOYOYOOOOOOOYYYY")
+    process_operations_file(File_Name)
