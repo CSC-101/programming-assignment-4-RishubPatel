@@ -3,80 +3,101 @@ import build_data
 import county_demographics
 import copy
 
-#TO DO: adjust code for percentages, do testing
+''' Testing:
+
+Files that have passed so far:
+pop
+pop_field
+percent_fields
+filter_state
+ca
+high_school_lt_60
+bachelors_gt_60
+
+'''
 
 global Demographics
 global File_Name
 
 Demographics = build_data.get_data()
-File_Name = "inputs/ca.ops" #INSTRUCTIONS: put the relative path of the operations file here
+File_Name = f"inputs/{input("Enter the file name: ")}.ops"
 
 class Operations:
         
     #ADJUST CODE WHERE PERCENTAGES ARE USED IN DATA: In population function: ethnicity, age, education, "persons below poverty level" within income, 
 
     def display(demographics: list[data.CountyDemographics]) -> None: #prints all data for all current counties
+        print()
         for county in demographics:
-            for key in vars(county):
-                print(key, ":")
-                if type(vars(county)[key]) == list:
-                    for value in vars(county)[key]:
-                        print("\t", value)
-                else:
-                    print("\t", vars(county)[key])
-            print("\n")
+            print(county.state.upper(), " ", county.county.upper())
+            print("\t", county.age)
+            print("\t", county.education)
+            print("\t", county.ethnicities)
+            print("\t", county.income)
+            print("\t", county.population)
+            print("\t", county.age)
+        print()
 
-    def filter_state(demographics: list[data.CountyDemographics], state_abbreviation: str) -> list[data.CountyDemographics]: #filters demographics by state
+    def filter_state(demographics: list[data.CountyDemographics], state_abbreviation: str, print_bool = True) -> list[data.CountyDemographics]: #filters demographics by state
         reduced_demographics = [demographic for demographic in demographics if demographic.state == state_abbreviation]
-        print(f"Filter: state == {state_abbreviation} ({len(reduced_demographics)} entries)")
+        if print_bool:
+            print(f"Filter: state == {state_abbreviation} ({len(reduced_demographics)} entries)")
         return(reduced_demographics)
 
-    def filter_gt(demographics: list[data.CountyDemographics], threshold: float, field: str) -> list[data.CountyDemographics]: #filters demographics by exceeding a threshold value of some field
+    def filter_gt(demographics: list[data.CountyDemographics], threshold: float, field: str, print_bool = True) -> list[data.CountyDemographics]: #filters demographics by exceeding a threshold value of some field
+        if "." in field:
+            split_field = field.split(".")
+            reduced_demographics = [demographic for demographic in demographics if vars(demographic)[split_field[0].lower()][split_field[1]] > float(threshold)]
+        else:
+            reduced_demographics = [demographic for demographic in demographics if vars(demographic)[field] > threshold]
+        if print_bool:
+            print(f"Filter: {field} gt {threshold} ({len(reduced_demographics)} entries)")
+        return reduced_demographics
+
+    def filter_lt(demographics: list[data.CountyDemographics], threshold: float, field: str, print_bool = True) -> list[data.CountyDemographics]: #filters demographics by being below a threshold value of some field
         if "." in field:
             split_field = field.split(".")
             reduced_demographics = [demographic for demographic in demographics if vars(demographic)[split_field[0].lower()][split_field[1]] < float(threshold)]
         else:
             reduced_demographics = [demographic for demographic in demographics if vars(demographic)[field] < threshold]
-        print(f"Filter: {field} gt {threshold} ({len(reduced_demographics)} entries)")
+        if print_bool:
+            print(f"Filter: {field} lt {threshold} ({len(reduced_demographics)} entries)")
         return reduced_demographics
 
-    def filter_lt(demographics: list[data.CountyDemographics], threshold: float, field: str) -> list[data.CountyDemographics]: #filters demographics by being below a threshold value of some field
-        if "." in field:
-            split_field = field.split(".")
-            reduced_demographics = [demographic for demographic in demographics if vars(demographic)[split_field[0]][split_field[1]] > threshold]
-        else:
-            reduced_demographics = [demographic for demographic in demographics if vars(demographic)[field] > threshold]
-        print(f"Filter: {field} lt {threshold} ({len(reduced_demographics)} entries)")
-        return reduced_demographics
-
-    def population_total(demographics: list[data.CountyDemographics]) -> list[data.CountyDemographics]: #returns the total population among given counties
+    def population_total(demographics: list[data.CountyDemographics], print_bool = True) -> list[data.CountyDemographics]: #returns the total population among given counties
         total_population = sum([county.population['2014 Population'] for county in demographics])
-        print(f"2014 population: {total_population}")
+        if print_bool:
+            print(f"2014 population: {total_population}")
         return total_population
 
-    def population(demographics: list[data.CountyDemographics], field: str) -> list[data.CountyDemographics]: #returns the total supopulation of some field among given counties
+    def population(demographics: list[data.CountyDemographics], field: str, print_bool = True) -> list[data.CountyDemographics]: #returns the total supopulation of some field among given counties
         if "." in field:
             split_field = field.split(".")
-            if "persons below poverty level" in split_field:
-                pass
+            if "Persons Below Poverty Level" in split_field or "Education" in split_field or "Ethnicity" in split_field or "Ethnicities" in split_field or "Age" in split_field: #adjust for percentage value
+                total_subpopulation = sum([(vars(county)[split_field[0].lower()][split_field[1]] / 100) * county.population['2014 Population'] for county in demographics])
             else:
                 total_subpopulation = sum([vars(county)[split_field[0].lower()][split_field[1]] for county in demographics])
         else:   
-            if "ethnicity" in field or "age" in field or "education" in field:
-                pass
+            if "Ethnicity" in field or "Age" in field or "Education" or "Ethnicities" in field: #adjust for percentage value
+                total_subpopulation = sum([(vars(county)[field] / 100) * county.population['2014 Population'] for county in demographics])
             else:
                 total_subpopulation = sum([vars(county)[field] for county in demographics])
-        print(f"2014 {field} population: {total_subpopulation}")
+        if print_bool:
+            print(f"2014 {field} population: {total_subpopulation}")
         return total_subpopulation
 
-    def percent(demographics: list[data.CountyDemographics], field: str) -> float: #returns the percentage of specified sub-population within the total population among the given counties
-        percentage = (Operations.population(demographics, field) / Operations.population_total(demographics)) * 100
-        print(f"2014 {field} percentage: {percentage}")
+    def percent(demographics: list[data.CountyDemographics], field: str, print_bool = True) -> float: #returns the percentage of specified sub-population within the total population among the given counties
+        total_pop = Operations.population_total(demographics, False)
+        if total_pop == 0:
+            percentage = 0
+        else:
+            percentage = (Operations.population(demographics, field, False) / total_pop) * 100
+        if print_bool:
+            print(f"2014 {field} percentage: {percentage}")
         return percentage
 
 def process_operations_file(file_name: str) -> None:
     Demographics_Copy = copy.deepcopy(Demographics)
-    file = open(file_name, "r")
     try:
         file = open(file_name, "r")
     except:
@@ -84,7 +105,7 @@ def process_operations_file(file_name: str) -> None:
         exit()
     
     lines = file.readlines()
-    print(len(lines), "records loaded")
+    print(len(Demographics_Copy), "records loaded")
 
     current_line_num = 0
     for line in lines:
@@ -112,8 +133,14 @@ def process_operations_file(file_name: str) -> None:
                 print("No operation found -- Line", current_line_num)
         except IndexError:
             print("Inputs not found (index error) -- Line", current_line_num)
+        except ValueError:
+            print("Invalid input(s) detected -- Line", current_line_num)
+        except KeyError:
+            print("Invalid input(s) detected -- Line", current_line_num)
+        except:
+            print("UNKNOWN ERROR -- Line", current_line_num)
 
 if __name__ == "__main__":
     process_operations_file(File_Name)
-    print(vars(Demographics[0]))
-    print(vars(Demographics[1]))
+    #print(vars(Demographics[0]))
+    #print(vars(Demographics[1]))
