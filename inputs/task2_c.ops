@@ -1,0 +1,6 @@
+filter-gt:Ethnicities.White Alone:40
+percent:Income.Persons Below Poverty Level
+filter-gt:Ethnicities.White Alone, not Hispanic or Latino:40
+percent:Income.Persons Below Poverty Level
+filter-gt:Ethnicities.Two or More Races:40
+percent:Income.Persons Below Poverty Level
