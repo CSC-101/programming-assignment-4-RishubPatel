@@ -95,7 +95,7 @@ class Operations:
             print(f"2014 {field} percentage: {percentage}")
         return percentage
 
-def process_operations_file(file_name: str) -> None:
+def process_operations_file(file_name: str) -> None: #Goes through an operations file and executes all of the operations detected
     global Demographics
     global Unknown_Error
 
