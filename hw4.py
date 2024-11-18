@@ -5,7 +5,7 @@ import copy
 
 ''' Testing:
 
-Files that have passed so far:
+Files that have matched sample outputs so far:
 pop
 pop_field
 percent_fields
@@ -17,14 +17,13 @@ bachelors_gt_60
 '''
 
 global Demographics
-global File_Name
+global Unknown_Error
 
+Unknown_Error = False
 Demographics = build_data.get_data()
 File_Name = f"inputs/{input("Enter the file name: ")}.ops"
 
 class Operations:
-        
-    #ADJUST CODE WHERE PERCENTAGES ARE USED IN DATA: In population function: ethnicity, age, education, "persons below poverty level" within income, 
 
     def display(demographics: list[data.CountyDemographics]) -> None: #prints all data for all current counties
         print()
@@ -97,6 +96,9 @@ class Operations:
         return percentage
 
 def process_operations_file(file_name: str) -> None:
+    global Demographics
+    global Unknown_Error
+
     Demographics_Copy = copy.deepcopy(Demographics)
     try:
         file = open(file_name, "r")
@@ -139,8 +141,13 @@ def process_operations_file(file_name: str) -> None:
             print("Invalid input(s) detected -- Line", current_line_num)
         except:
             print("UNKNOWN ERROR -- Line", current_line_num)
+            Unknown_Error = current_line_num
 
 if __name__ == "__main__":
     process_operations_file(File_Name)
+    '''if type(Unknown_Error) != bool:
+        print("#" * 200)
+        print("Unknown Error: ".upper(), Unknown_Error)
+        print("#" * 200)'''
     #print(vars(Demographics[0]))
     #print(vars(Demographics[1]))
